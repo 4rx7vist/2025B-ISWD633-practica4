@@ -49,21 +49,65 @@ docker build -t <nombre imagen>:<tag> .
 - apachectl: Es el script de control para el servidor web Apache. Se utiliza para iniciar, detener y controlar el servidor web.
 - -D FOREGROUND: Esta opción le dice a Apache que se ejecute en primer plano. Por defecto, Apache se ejecuta como un servicio en segundo plano. Sin embargo, en un contenedor Docker, es preferible que el proceso principal (en este caso, Apache) se ejecute en primer plano para que Docker pueda monitorear el estado del proceso. Si Apache se ejecutara en segundo plano, Docker no podría saber si el servidor web está funcionando correctamente o no.
 
- 
+Por ejemplo dentro del ejemplo he creado un archivo /web/index.html para mostrarlo para el caso 
+<img width="512" height="94" alt="image" src="https://github.com/user-attachments/assets/ed689806-fc00-4f9c-b82a-25850701ee5e" />
+
+Tomando en cuenta que la version 7 de centos cuenta con errores, obtengo un error de configuracion de DNS 
+```
+=> ERROR [2/4] RUN yum update -y                                                                                                         1.9s
+------
+ > [2/4] RUN yum update -y:
+0.887 Loaded plugins: fastestmirror, ovl
+1.194 Determining fastest mirrors
+1.451 Could not retrieve mirrorlist http://mirrorlist.centos.org/?release=7&arch=x86_64&repo=os&infra=container error was
+1.451 14: curl#6 - "Could not resolve host: mirrorlist.centos.org; Unknown error"
+1.462
+```
+
+Agregare las siguientes lineas 
+```
+# Reemplazar mirrors antiguos por los del Vault
+RUN sed -i 's|mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-*.repo && \
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
+```
+
+
 ### Ejecutar el archivo Dockerfile y construir una imagen en la versión 1.0
 No olvides verificar en qué directorio se encuentra el archivo Dockerfile
+
+Primero construyo la imagen a partir del dockerfile 
 ```
+docker build -t centos7-apache .
+```
+Para posteriormente ejecuatar el contenedor:
 
 ```
+docker run -d -p 8080:80 --name centos7-web centos7-apache
+```
+
 
 **¿Cuántos pasos se han ejecutado?**
-# RESPONDER 
+Se han ejecutado 7 pasos (incluido la configurar por cuestion de los mirrors antiguos) en la construccion y configuración de la imagen.
 
 ### Inspeccionar la imagen creada
-# COMPLETAR CON UNA CAPTURA
+Aqui se muestra la imagen creada con el archivo index.html que salia de ./web
+<img width="1855" height="936" alt="image" src="https://github.com/user-attachments/assets/4df9ef43-ef76-4641-9c88-4aa0dab6ec66" />
+
 
 **Modificar el archivo index.html para incluir su nombre y luego crear una nueva versión de la imagen anterior**
 **¿Cuántos pasos se han ejecutado? ¿Observa algo diferente en la creación de la imagen**
+
+Se siguen ejecutando los 7 pasos anteriores del archivo Dockerfile, sin distincion, sin embargo, corrigiendo el archivo index.html, con el contenido se debe colocar una nueva reconstruccion de la imagen en version2.
+
+```
+docker build -t centos7-apache:v2 .
+```
+y
+```
+docker run -d -p 8080:80 --name centos7-web_v2 centos7-apache:v2
+```
+<img width="1811" height="861" alt="image" src="https://github.com/user-attachments/assets/6fe262f6-a956-4a68-a1c1-ff0ffdd42dcc" />
+
 
 ## Mecanismo de caché
 Docker usa un mecanismo de caché cuando crea imágenes para acelerar el proceso de construcción y evitar la repetición de pasos que no han cambiado. Cada instrucción en un Dockerfile crea una capa en la imagen final. Docker intenta reutilizar las capas de una construcción anterior si no han cambiado, lo que reduce significativamente el tiempo de construcción.
@@ -75,30 +119,37 @@ Docker usa un mecanismo de caché cuando crea imágenes para acelerar el proceso
 
 ### Crear un contenedor a partir de las imagen creada, mapear todos los puertos
 ```
-
+docker run -d -P --name contenedor-apache centos7-apache:v2
 ```
 
 ### ¿Con que puerto host se está realizando el mapeo?
-# COMPLETAR CON LA RESPUESTA
+<img width="1722" height="95" alt="image" src="https://github.com/user-attachments/assets/3756b3f4-619c-48e8-beb5-141802d3f7bb" />
+De acuerdo a lo que ha realizado docker, el contenedor expone el puerto 80 y Docker lo ha mapeó automaticamente en el puerto 32768 del host 
 
 **¿Qué es una imagen huérfana?**
-# COMPLETAR CON LA RESPUESTA
+Una imagen huérfana (o dangling image) es una imagen sin etiqueta (<none>) que ya no está asociada a ningún contenedor ni versión activa.
+Estas aparecen normalmente cuando se reconstruye una imagen y docker remplaza las capas antiguas
 
 ### Identificar imágenes huérfanas
 ```
 docker images -f "dangling=true"
 ```
+<img width="631" height="78" alt="image" src="https://github.com/user-attachments/assets/41d204c6-1d93-4948-ace1-57c1904b7788" />
+
 
 ### Listar los IDS de las imágenes huérfanas
 ```
 docker images -f "dangling=true" -q
 ```
+<img width="624" height="56" alt="image" src="https://github.com/user-attachments/assets/d860f90b-cebc-4b6a-a863-d001a2d25224" />
+
 
 ### Eliminar imágenes huérfanas
 Este comando eliminará todas las imágenes que no estén asociadas a ningún contenedor en ejecución. Antes de ejecutarlo, asegúrate de revisar las imágenes que serán eliminadas para evitar la pérdida de imágenes importantes. 
 ```
 docker image prune
 ```
+<img width="596" height="106" alt="image" src="https://github.com/user-attachments/assets/6873e629-1ac5-4333-a6bd-77203b009752" />
 
 ### Para Ejecutar un archivo Dockerfile que tiene otro nombre
 ```
@@ -107,6 +158,5 @@ docker build -t <nombre imagen>:<tag> -f <ruta y nombre del Dockerfile> .
 
 ## Por ejemplo
 docker build -t imagen:1.0 -f Dockerfile-custom .
-
 
 
