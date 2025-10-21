@@ -78,7 +78,8 @@ docker run -d --name server-nginx --health-cmd="curl http://localhost" --health-
 ```
 Como se muestra en la imagen, el contenedor se encuentra en funcionamiento sin ninguna falla.
 
-<img width="735" height="749" alt="image" src="https://github.com/user-attachments/assets/a4763a40-2908-4b17-b2a2-3cfe49aaae9b" />
+<img width="1268" height="938" alt="image" src="https://github.com/user-attachments/assets/7e7a51d1-11b0-4939-849d-59568fc8c0a1" />
+
 
 <img width="979" height="51" alt="image" src="https://github.com/user-attachments/assets/3095a739-be4d-444c-b743-a42f1ed2df8e" />
 
