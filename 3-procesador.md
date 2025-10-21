@@ -1,4 +1,4 @@
-<img width="998" height="54" alt="image" src="https://github.com/user-attachments/assets/a3ee1b53-a38b-4215-8aa6-e66f62715e5c" /># Limitar uso de procesador
+# Limitar uso de procesador
 Limitar la cantidad de núcleos de CPU:
 ```
 --cpus=<número de núcleos>
